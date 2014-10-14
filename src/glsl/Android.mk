@@ -71,6 +71,7 @@ LOCAL_MODULE := mesa_builtin_compiler
 
 LOCAL_MODULE_CLASS := EXECUTABLES
 LOCAL_IS_HOST_MODULE := true
+LOCAL_2ND_ARCH_VAR_PREFIX := true
 include $(LOCAL_PATH)/Android.gen.mk
 include $(MESA_COMMON_MK)
 include $(BUILD_HOST_EXECUTABLE)

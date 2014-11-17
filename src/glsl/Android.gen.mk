@@ -27,7 +27,8 @@ ifeq ($(LOCAL_MODULE_CLASS),)
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 endif
 
-intermediates := $(call local-intermediates-dir,,$(LOCAL_2ND_ARCH_VAR_PREFIX))
+#multiarch build does not like => intermediates := $(call local-intermediates-dir,,$(LOCAL_2ND_ARCH_VAR_PREFIX))
+generated := $(call local-generated-sources-dir)
 
 sources := \
 	glsl_lexer.cpp \
@@ -41,9 +42,9 @@ endif
 
 LOCAL_SRC_FILES := $(filter-out $(sources), $(LOCAL_SRC_FILES))
 
-LOCAL_C_INCLUDES += $(intermediates) $(intermediates)/glcpp $(MESA_TOP)/src/glsl/glcpp
+LOCAL_C_INCLUDES += $(generated) $(generated)/glcpp $(MESA_TOP)/src/glsl/glcpp
 
-sources := $(addprefix $(intermediates)/, $(sources))
+sources := $(addprefix $(generated)/, $(sources))
 LOCAL_GENERATED_SOURCES += $(sources)
 
 define local-l-or-ll-to-c-or-cpp
@@ -70,16 +71,16 @@ define local-yy-to-cpp-and-h
 	rm -f $(@:$1=$(YACC_HEADER_SUFFIX))
 endef
 
-$(intermediates)/glsl_lexer.cpp: $(LOCAL_PATH)/glsl_lexer.ll
+$(generated)/glsl_lexer.cpp: $(LOCAL_PATH)/glsl_lexer.ll
 	$(call local-l-or-ll-to-c-or-cpp)
 
-$(intermediates)/glsl_parser.cpp: $(LOCAL_PATH)/glsl_parser.yy
+$(generated)/glsl_parser.cpp: $(LOCAL_PATH)/glsl_parser.yy
 	$(call local-yy-to-cpp-and-h,.cpp)
 
-$(intermediates)/glcpp/glcpp-lex.c: $(LOCAL_PATH)/glcpp/glcpp-lex.l
+$(generated)/glcpp/glcpp-lex.c: $(LOCAL_PATH)/glcpp/glcpp-lex.l
 	$(call local-l-or-ll-to-c-or-cpp)
 
-$(intermediates)/glcpp/glcpp-parse.c: $(LOCAL_PATH)/glcpp/glcpp-parse.y
+$(generated)/glcpp/glcpp-parse.c: $(LOCAL_PATH)/glcpp/glcpp-parse.y
 	$(call glsl_local-y-to-c-and-h)
 
 BUILTIN_COMPILER := $(BUILD_OUT_EXECUTABLES)/mesa_builtin_compiler$(BUILD_EXECUTABLE_SUFFIX)
@@ -91,8 +92,8 @@ builtin_function_deps := \
 	$(wildcard $(LOCAL_PATH)/builtins/profiles/*) \
        	$(wildcard $(LOCAL_PATH)/builtins/ir/*)
 
-$(intermediates)/builtin_function.cpp: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(LOCAL_PATH)/builtins/tools/generate_builtins.py
-$(intermediates)/builtin_function.cpp: $(builtin_function_deps)
+$(generated)/builtin_function.cpp: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(LOCAL_PATH)/builtins/tools/generate_builtins.py
+$(generated)/builtin_function.cpp: $(builtin_function_deps)
 	@mkdir -p $(dir $@)
 	@echo "Gen GLSL: $(PRIVATE_MODULE) <= $(notdir $@)"
 	$(hide) $(PRIVATE_SCRIPT) $(BUILTIN_COMPILER) > $@ || rm -f $@

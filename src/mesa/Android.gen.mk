@@ -27,7 +27,7 @@ ifeq ($(LOCAL_MODULE_CLASS),)
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 endif
 
-intermediates := $(call local-intermediates-dir)
+generated-sources := $(call local-generated-sources-dir)
 
 # This is the list of auto-generated files: sources and headers
 sources := \
@@ -39,18 +39,18 @@ sources := \
 
 LOCAL_SRC_FILES := $(filter-out $(sources), $(LOCAL_SRC_FILES))
 
-LOCAL_C_INCLUDES += $(intermediates)/main
+LOCAL_C_INCLUDES += $(generated-sources)/main
 
 ifeq ($(strip $(MESA_ENABLE_ASM)),true)
 ifeq ($(TARGET_ARCH),x86)
 sources += x86/matypes.h
-LOCAL_C_INCLUDES += $(intermediates)/x86
+LOCAL_C_INCLUDES += $(generated-sources)/x86
 endif
 endif
 
 sources += main/git_sha1.h
 
-sources := $(addprefix $(intermediates)/, $(sources))
+sources := $(addprefix $(generated-sources)/, $(sources))
 
 LOCAL_GENERATED_SOURCES += $(sources)
 
@@ -66,7 +66,7 @@ define es-gen
 	$(hide) $(PRIVATE_SCRIPT) $(1) $(PRIVATE_XML) > $@
 endef
 
-$(intermediates)/main/git_sha1.h:
+$(generated-sources)/main/git_sha1.h:
 	@mkdir -p $(dir $@)
 	@echo "GIT-SHA1: $(PRIVATE_MODULE) <= git"
 	$(hide) touch $@
@@ -81,38 +81,38 @@ matypes_deps := \
 	$(LOCAL_PATH)/main/mtypes.h \
 	$(LOCAL_PATH)/tnl/t_context.h
 
-$(intermediates)/x86/matypes.h: $(matypes_deps) 
+$(generated-sources)/x86/matypes.h: $(matypes_deps) 
 	@mkdir -p $(dir $@)
 	@echo "MATYPES: $(PRIVATE_MODULE) <= $(notdir $@)"
 	$(hide) $< > $@
 
-$(intermediates)/main/dispatch.h: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(glapi)/gl_table.py
-$(intermediates)/main/dispatch.h: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
+$(generated-sources)/main/dispatch.h: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(glapi)/gl_table.py
+$(generated-sources)/main/dispatch.h: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
 
-$(intermediates)/main/dispatch.h: $(dispatch_deps)
+$(generated-sources)/main/dispatch.h: $(dispatch_deps)
 	$(call es-gen, $* -m remap_table)
 
-$(intermediates)/main/remap_helper.h: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(glapi)/remap_helper.py
-$(intermediates)/main/remap_helper.h: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
+$(generated-sources)/main/remap_helper.h: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(glapi)/remap_helper.py
+$(generated-sources)/main/remap_helper.h: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
 
-$(intermediates)/main/remap_helper.h: $(dispatch_deps)
+$(generated-sources)/main/remap_helper.h: $(dispatch_deps)
 	$(call es-gen, $*)
 
-$(intermediates)/main/enums.c: PRIVATE_SCRIPT :=$(MESA_PYTHON2) $(glapi)/gl_enums.py
-$(intermediates)/main/enums.c: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
+$(generated-sources)/main/enums.c: PRIVATE_SCRIPT :=$(MESA_PYTHON2) $(glapi)/gl_enums.py
+$(generated-sources)/main/enums.c: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
 
-$(intermediates)/main/enums.c: $(dispatch_deps)
+$(generated-sources)/main/enums.c: $(dispatch_deps)
 	$(call es-gen)
 
-$(intermediates)/main/api_exec.c: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(glapi)/gl_genexec.py
-$(intermediates)/main/api_exec.c: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
+$(generated-sources)/main/api_exec.c: PRIVATE_SCRIPT := $(MESA_PYTHON2) $(glapi)/gl_genexec.py
+$(generated-sources)/main/api_exec.c: PRIVATE_XML := -f $(glapi)/gl_and_es_API.xml
 
-$(intermediates)/main/api_exec.c: $(dispatch_deps)
+$(generated-sources)/main/api_exec.c: $(dispatch_deps)
 	$(call es-gen)
 
 GET_HASH_GEN := $(LOCAL_PATH)/main/get_hash_generator.py
 
-$(intermediates)/main/get_hash.h: $(glapi)/gl_and_es_API.xml \
+$(generated-sources)/main/get_hash.h: $(glapi)/gl_and_es_API.xml \
                $(LOCAL_PATH)/main/get_hash_params.py $(GET_HASH_GEN)
 	@$(MESA_PYTHON2) $(GET_HASH_GEN) -f $< > $@
 
@@ -122,7 +122,7 @@ format_info_deps := \
 	$(LOCAL_PATH)/main/format_parser.py \
 	$(FORMAT_INFO)
 
-$(intermediates)/main/format_info.c: $(format_info_deps)
+$(generated-sources)/main/format_info.c: $(format_info_deps)
 	@$(MESA_PYTHON2) $(FORMAT_INFO) $< > $@
 
-$(intermediates)/main/formats.o: $(intermediates)/main/format_info.c
+$(generated-sources)/main/formats.o: $(generated-sources)/main/format_info.c

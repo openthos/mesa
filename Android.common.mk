@@ -50,9 +50,13 @@ ifeq ($(strip $(MESA_ENABLE_ASM)),true)
 ifeq ($(TARGET_ARCH),x86)
 LOCAL_CFLAGS += \
 	-DUSE_X86_ASM \
-	-DHAVE_DLOPEN \
-
-endif
+	-DHAVE_DLOPEN
+endif # x86
+ifeq ($(TARGET_ARCH),x86_64)
+LOCAL_CFLAGS += \
+	-DUSE_X86_64_ASM \
+	-DHAVE_DLOPEN
+endif # x86-64
 endif
 
 LOCAL_CPPFLAGS += \

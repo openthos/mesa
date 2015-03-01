@@ -47,7 +47,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libmesa_program
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
-intermediates := $(call local-intermediates-dir)
+generated-sources := $(call local-generated-sources-dir)
 
 # TODO(chadv): In Makefile.sources, move these vars to a different list so we can
 # remove this kludge.
@@ -60,19 +60,19 @@ LOCAL_SRC_FILES := \
 	$(filter-out $(generated_sources_basenames),$(subst program/,,$(PROGRAM_FILES)))
 
 LOCAL_GENERATED_SOURCES := \
-	$(addprefix $(intermediates)/program/,$(generated_sources_basenames))
+	$(addprefix $(generated-sources)/program/,$(generated_sources_basenames))
 
-$(intermediates)/program/program_parse.tab.c: $(LOCAL_PATH)/program_parse.y
+$(generated-sources)/program/program_parse.tab.c: $(LOCAL_PATH)/program_parse.y
 	$(mesa_local-y-to-c-and-h)
 
-$(intermediates)/program/program_parse.tab.h: $(intermediates)/program/program_parse.tab.c
+$(generated-sources)/program/program_parse.tab.h: $(generated-sources)/program/program_parse.tab.c
 	@
 
-$(intermediates)/program/lex.yy.c: $(LOCAL_PATH)/program_lexer.l
+$(generated-sources)/program/lex.yy.c: $(LOCAL_PATH)/program_lexer.l
 	$(local-l-to-c)
 
 LOCAL_C_INCLUDES := \
-	$(intermediates) \
+	$(generated-sources) \
 	$(MESA_TOP)/src \
 	$(MESA_TOP)/src/mapi \
 	$(MESA_TOP)/src/mesa \

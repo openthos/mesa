@@ -125,4 +125,4 @@ format_info_deps := \
 $(generated-sources)/main/format_info.c: $(format_info_deps)
 	@$(MESA_PYTHON2) $(FORMAT_INFO) $< > $@
 
-$(generated-sources)/main/formats.o: $(generated-sources)/main/format_info.c
+$(LOCAL_PATH)/main/formats.c: $(generated-sources)/main/format_info.c

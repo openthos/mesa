@@ -123,6 +123,7 @@ format_info_deps := \
 	$(FORMAT_INFO)
 
 $(generated-sources)/main/format_info.c: $(format_info_deps)
+	@mkdir -p $(dir $@)
 	@$(MESA_PYTHON2) $(FORMAT_INFO) $< > $@
 
 $(LOCAL_PATH)/main/formats.c: $(generated-sources)/main/format_info.c

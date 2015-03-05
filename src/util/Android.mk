@@ -44,12 +44,12 @@ LOCAL_MODULE := libmesa_util
 
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
-intermediates := $(call local-intermediates-dir)
-LOCAL_GENERATED_SOURCES := $(addprefix $(intermediates)/,$(MESA_UTIL_GENERATED_FILES))
+generated-sources := $(call local-generated-sources-dir)
+LOCAL_GENERATED_SOURCES := $(addprefix $(generated-sources)/,$(MESA_UTIL_GENERATED_FILES))
 
 $(LOCAL_GENERATED_SOURCES): PRIVATE_PYTHON := $(MESA_PYTHON2)
 $(LOCAL_GENERATED_SOURCES): PRIVATE_CUSTOM_TOOL = $(PRIVATE_PYTHON) $^ > $@
-$(LOCAL_GENERATED_SOURCES): $(intermediates)/%.c: $(LOCAL_PATH)/%.py
+$(LOCAL_GENERATED_SOURCES): $(generated-sources)/%.c: $(LOCAL_PATH)/%.py
 	$(transform-generated-source)
 
 include $(MESA_COMMON_MK)
@@ -78,12 +78,12 @@ LOCAL_MODULE := libmesa_util
 
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
-intermediates := $(call local-intermediates-dir)
-LOCAL_GENERATED_SOURCES := $(addprefix $(intermediates)/,$(MESA_UTIL_GENERATED_FILES))
+generated-sources := $(call local-generated-sources-dir)
+LOCAL_GENERATED_SOURCES := $(addprefix $(generated-sources)/,$(MESA_UTIL_GENERATED_FILES))
 
 $(LOCAL_GENERATED_SOURCES): PRIVATE_PYTHON := $(MESA_PYTHON2)
 $(LOCAL_GENERATED_SOURCES): PRIVATE_CUSTOM_TOOL = $(PRIVATE_PYTHON) $^ > $@
-$(LOCAL_GENERATED_SOURCES): $(intermediates)/%.c: $(LOCAL_PATH)/%.py
+$(LOCAL_GENERATED_SOURCES): $(generated-sources)/%.c: $(LOCAL_PATH)/%.py
 	$(transform-generated-source)
 
 include $(MESA_COMMON_MK)

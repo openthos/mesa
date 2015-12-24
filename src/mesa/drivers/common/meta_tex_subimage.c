@@ -153,7 +153,8 @@ _mesa_meta_pbo_TexSubImage(struct gl_context *ctx, GLuint dims,
    /* XXX: This should probably be passed in from somewhere */
    const char *where = "_mesa_meta_pbo_TexSubImage";
 
-   if (!_mesa_is_bufferobj(packing->BufferObj) && !create_pbo)
+   if (!_mesa_is_bufferobj(packing->BufferObj) &&
+       (!create_pbo || pixels == NULL))
       return false;
 
    if (format == GL_DEPTH_COMPONENT ||

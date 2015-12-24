@@ -47,7 +47,7 @@ create_texture_for_pbo(struct gl_context *ctx, bool create_pbo,
                        GLenum pbo_target, int width, int height,
                        GLenum format, GLenum type, const void *pixels,
                        const struct gl_pixelstore_attrib *packing,
-                       GLuint *tmp_pbo, GLuint *tmp_tex)
+                       struct gl_buffer_object **tmp_pbo, GLuint *tmp_tex)
 {
    uint32_t pbo_format;
    GLenum internal_format;
@@ -75,25 +75,34 @@ create_texture_for_pbo(struct gl_context *ctx, bool create_pbo,
    row_stride = _mesa_image_row_stride(packing, width, format, type);
 
    if (_mesa_is_bufferobj(packing->BufferObj)) {
-      *tmp_pbo = 0;
+      *tmp_pbo = NULL;
       buffer_obj = packing->BufferObj;
    } else {
+      bool is_pixel_pack = pbo_target == GL_PIXEL_PACK_BUFFER;
+
       assert(create_pbo);
 
-      _mesa_GenBuffers(1, tmp_pbo);
+      *tmp_pbo = ctx->Driver.NewBufferObject(ctx, 0xDEADBEEF);
+      if (*tmp_pbo == NULL)
+         return NULL;
 
-      /* We are not doing this inside meta_begin/end.  However, we know the
-       * client doesn't have the given target bound, so we can go ahead and
-       * squash it.  We'll set it back when we're done.
+      /* In case of GL_PIXEL_PACK_BUFFER, pass null pointer for the pixel
+       * data to avoid unnecessary data copying in _mesa_buffer_data.
        */
-      _mesa_BindBuffer(pbo_target, *tmp_pbo);
+      if (is_pixel_pack)
+         _mesa_buffer_data(ctx, *tmp_pbo, GL_NONE,
+                           row_stride * height,
+                           NULL,
+                           GL_STREAM_READ,
+                           __func__);
+      else
+         _mesa_buffer_data(ctx, *tmp_pbo, GL_NONE,
+                           row_stride * height,
+                           (char *)pixels,
+                           GL_STREAM_DRAW,
+                           __func__);
 
-      _mesa_BufferData(pbo_target, row_stride * height, pixels, GL_STREAM_DRAW);
-
-      buffer_obj = ctx->Unpack.BufferObj;
-      pixels = NULL;
-
-      _mesa_BindBuffer(pbo_target, 0);
+      buffer_obj = *tmp_pbo;
    }
 
    _mesa_GenTextures(1, tmp_tex);
@@ -117,7 +126,7 @@ create_texture_for_pbo(struct gl_context *ctx, bool create_pbo,
                                                      row_stride,
                                                      read_only)) {
       _mesa_DeleteTextures(1, tmp_tex);
-      _mesa_DeleteBuffers(1, tmp_pbo);
+      _mesa_reference_buffer_object(ctx, tmp_pbo, NULL);
       return NULL;
    }
 
@@ -133,7 +142,8 @@ _mesa_meta_pbo_TexSubImage(struct gl_context *ctx, GLuint dims,
                            bool allocate_storage, bool create_pbo,
                            const struct gl_pixelstore_attrib *packing)
 {
-   GLuint pbo = 0, pbo_tex = 0, fbos[2] = { 0, 0 };
+   struct gl_buffer_object *pbo = NULL;
+   GLuint pbo_tex = 0, fbos[2] = { 0, 0 };
    int full_height, image_height;
    struct gl_texture_image *pbo_tex_image;
    GLenum status;
@@ -245,7 +255,7 @@ _mesa_meta_pbo_TexSubImage(struct gl_context *ctx, GLuint dims,
 fail:
    _mesa_DeleteFramebuffers(2, fbos);
    _mesa_DeleteTextures(1, &pbo_tex);
-   _mesa_DeleteBuffers(1, &pbo);
+   _mesa_reference_buffer_object(ctx, &pbo, NULL);
 
    _mesa_meta_end(ctx);
 
@@ -260,7 +270,8 @@ _mesa_meta_pbo_GetTexSubImage(struct gl_context *ctx, GLuint dims,
                               GLenum format, GLenum type, const void *pixels,
                               const struct gl_pixelstore_attrib *packing)
 {
-   GLuint pbo = 0, pbo_tex = 0, fbos[2] = { 0, 0 };
+   struct gl_buffer_object *pbo = NULL;
+   GLuint pbo_tex = 0, fbos[2] = { 0, 0 };
    int full_height, image_height;
    struct gl_texture_image *pbo_tex_image;
    GLenum status;
@@ -376,7 +387,7 @@ _mesa_meta_pbo_GetTexSubImage(struct gl_context *ctx, GLuint dims,
 fail:
    _mesa_DeleteFramebuffers(2, fbos);
    _mesa_DeleteTextures(1, &pbo_tex);
-   _mesa_DeleteBuffers(1, &pbo);
+   _mesa_reference_buffer_object(ctx, &pbo, NULL);
 
    _mesa_meta_end(ctx);
 
